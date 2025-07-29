@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist -r https://github.com/boboseong/Turn-Every-Sheet-Row-Into-a-Chat-Response.git"
   },
   "dependencies": {
     "i18next": "^25.3.2",
