@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/state/store';
 import { callApi } from '@/services/api';
+import { applyPromptTemplate } from '@/utils/promptTemplate';
 
 interface ResultModalProps {
   rowIndex: number;
@@ -25,16 +26,7 @@ const ResultModal: React.FC<ResultModalProps> = ({ rowIndex, onClose }) => {
   const response = individualResponses[rowIndex] || '';
 
   useEffect(() => {
-    const generatePrompt = () => {
-      let generatedPrompt = promptTemplate;
-      for (const header of csvData.headers) {
-        const regex = new RegExp(`{{${header}}}`, 'g');
-        generatedPrompt = generatedPrompt.replace(regex, row[header]);
-      }
-      setPrompt(generatedPrompt);
-    };
-
-    generatePrompt();
+    setPrompt(applyPromptTemplate(promptTemplate, row, csvData.headers));
   }, [csvData, promptTemplate, row]);
 
   const handleGetResponse = async () => {
