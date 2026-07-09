@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { CsvData, ReasoningState } from '@/types';
+import { CsvData, ImageTask, ReasoningState, WorkMode } from '@/types';
 import { idbGet, idbSet, idbClear } from '@/utils/indexedDB';
 
 interface AppState {
@@ -30,6 +30,8 @@ interface AppState {
   isPresencePenaltyEnabled: boolean;
   reasoningState: ReasoningState;
   isAdvancedSettingsOpen: boolean;
+  workMode: WorkMode;
+  imageTasks: ImageTask[];
   setCsvData: (data: CsvData) => void;
   setSelectedRowIndex: (index: number | null) => void;
   setPromptTemplate: (template: string) => void;
@@ -57,6 +59,12 @@ interface AppState {
   setIsPresencePenaltyEnabled: (enabled: boolean) => void;
   setReasoningState: (state: ReasoningState) => void;
   setIsAdvancedSettingsOpen: (isOpen: boolean) => void;
+  setWorkMode: (mode: WorkMode) => void;
+  addImageTasks: (tasks: ImageTask[]) => void;
+  removeImageTask: (id: string) => void;
+  updateImageTaskPrompt: (id: string, prompt: string) => void;
+  setImageTaskLoading: (id: string, loading: boolean) => void;
+  setImageTaskResponse: (id: string, response: string) => void;
   loadInitialData: () => void;
   clearAllData: () => void;
 }
@@ -89,6 +97,8 @@ export const useStore = create<AppState>((set) => ({
   isPresencePenaltyEnabled: false,
   reasoningState: 'default',
   isAdvancedSettingsOpen: false,
+  workMode: 'sheet',
+  imageTasks: [],
   setCsvData: (data) => {
     set({ csvData: data });
     idbSet('uploadedCsv', data);
@@ -197,6 +207,35 @@ export const useStore = create<AppState>((set) => ({
     set({ isAdvancedSettingsOpen: isOpen });
     idbSet('isAdvancedSettingsOpen', isOpen);
   },
+  setWorkMode: (mode) => {
+    set({ workMode: mode });
+    idbSet('workMode', mode);
+  },
+  addImageTasks: (tasks) => set((state) => {
+    const imageTasks = [...state.imageTasks, ...tasks];
+    idbSet('imageTasks', imageTasks);
+    return { imageTasks };
+  }),
+  removeImageTask: (id) => set((state) => {
+    const imageTasks = state.imageTasks.filter((task) => task.id !== id);
+    idbSet('imageTasks', imageTasks);
+    return { imageTasks };
+  }),
+  updateImageTaskPrompt: (id, prompt) => set((state) => {
+    const imageTasks = state.imageTasks.map((task) => task.id === id ? { ...task, prompt } : task);
+    idbSet('imageTasks', imageTasks);
+    return { imageTasks };
+  }),
+  setImageTaskLoading: (id, loading) => set((state) => {
+    const imageTasks = state.imageTasks.map((task) => task.id === id ? { ...task, loading } : task);
+    idbSet('imageTasks', imageTasks);
+    return { imageTasks };
+  }),
+  setImageTaskResponse: (id, response) => set((state) => {
+    const imageTasks = state.imageTasks.map((task) => task.id === id ? { ...task, response } : task);
+    idbSet('imageTasks', imageTasks);
+    return { imageTasks };
+  }),
   loadInitialData: async () => {
     const storedCsv = await idbGet('uploadedCsv');
     if (storedCsv) {
@@ -262,6 +301,14 @@ export const useStore = create<AppState>((set) => ({
     if (storedIsAdvancedSettingsOpen) {
       set({ isAdvancedSettingsOpen: storedIsAdvancedSettingsOpen });
     }
+    const storedWorkMode = await idbGet('workMode');
+    if (storedWorkMode) {
+      set({ workMode: storedWorkMode });
+    }
+    const storedImageTasks = await idbGet('imageTasks');
+    if (storedImageTasks) {
+      set({ imageTasks: storedImageTasks.map((task: ImageTask) => ({ ...task, loading: false })) });
+    }
   },
   clearAllData: async () => {
     await idbClear();
@@ -293,6 +340,8 @@ export const useStore = create<AppState>((set) => ({
       isPresencePenaltyEnabled: false,
       reasoningState: 'default',
       isAdvancedSettingsOpen: false,
+      workMode: 'sheet',
+      imageTasks: [],
     });
   },
 }));

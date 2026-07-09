@@ -49,6 +49,18 @@
     "default": "기본값",
     "custom": "커스텀",
     "on": "켜기",
-    "ai_response": "AI 응답"
+    "ai_response": "AI 응답",
+    "work_mode": "작업 모드",
+    "sheet_mode": "시트 (기본)",
+    "image_mode": "이미지",
+    "image_workspace": "이미지 작업창",
+    "upload_images": "이미지 업로드",
+    "multiple_images_help": "여러 이미지를 선택하거나 드롭할 수 있습니다. 각 이미지마다 자유 프롬프트를 입력하며 열 이름은 사용하지 않습니다.",
+    "no_images_uploaded": "아직 업로드된 이미지가 없습니다.",
+    "image_prompt": "이미지 프롬프트",
+    "enter_image_prompt": "이 이미지에 사용할 프롬프트를 입력하세요.",
+    "process_image": "이미지 처리",
+    "remove_image": "이미지 삭제",
+    "image_only_alert": "이미지 파일만 업로드하세요."
   }
 }

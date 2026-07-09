@@ -49,6 +49,18 @@
     "custom": "custom",
     "on": "On",
     "close": "Close",
-    "ai_response": "AI Response"
+    "ai_response": "AI Response",
+    "work_mode": "Work mode",
+    "sheet_mode": "Sheet (default)",
+    "image_mode": "Images",
+    "image_workspace": "Image Workspace",
+    "upload_images": "Upload images",
+    "multiple_images_help": "You can select or drop multiple images. Each image has its own free-form prompt; no column headers are used.",
+    "no_images_uploaded": "No images uploaded yet.",
+    "image_prompt": "Image prompt",
+    "enter_image_prompt": "Enter a prompt for this image.",
+    "process_image": "Process Image",
+    "remove_image": "Remove image",
+    "image_only_alert": "Please upload image files only."
   }
 }
