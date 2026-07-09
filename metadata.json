@@ -1,6 +1,0 @@
-{
-  "name": "CSV-based Dynamic Prompt Generator",
-  "description": "An application that generates dynamic prompts by combining a user-defined template with data from an uploaded CSV file. Users can upload a CSV, create a template using column headers as tags, and select a row to see the final prompt in real-time.",
-  "requestFramePermissions": [],
-  "prompt": ""
-}
