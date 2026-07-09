@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/state/store';
+import { renderPromptTemplate } from '@/utils/prompt';
 import { SendIcon, SpinnerIcon, SettingsIcon } from '@/components/icons';
 import EstimateCostPanel from '@/components/EstimateCostPanel';
 import { handleTestApi } from '@/services/api';
@@ -41,25 +42,10 @@ const ApiPanel: React.FC = () => {
     } = useStore();
     const inputStyles = "w-full p-2 bg-gray-900 border border-gray-600 rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-none text-gray-200 placeholder-gray-500";
 
-    const generatedPrompt = useMemo(() => {
-        if (selectedRowIndex === null || !csvData.rows[selectedRowIndex]) {
-            return 'To get started, please select a data row from the Sheet Upload Panel.';
-        }
-        if (!promptTemplate) {
-            return 'Now, please enter a prompt template in the PromptTemplatePanel.';
-        }
-
-        const selectedRow = csvData.rows[selectedRowIndex];
-        let result = promptTemplate;
-
-        csvData.headers.forEach(header => {
-            const regex = new RegExp(`{{${header}}}`, 'g');
-            const value = selectedRow[header] !== undefined && selectedRow[header] !== null ? selectedRow[header] : '';
-            result = result.replace(regex, value);
-        });
-
-        return result;
-    }, [selectedRowIndex, promptTemplate, csvData]);
+    const generatedPrompt = useMemo(
+        () => renderPromptTemplate(csvData, selectedRowIndex, promptTemplate),
+        [csvData, selectedRowIndex, promptTemplate],
+    );
 
     const onTestApiClick = () => {
         handleTestApi(
