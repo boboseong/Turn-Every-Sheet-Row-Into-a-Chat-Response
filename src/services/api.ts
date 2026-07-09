@@ -1,5 +1,6 @@
 import { CsvData, ReasoningState } from '@/types';
 import { idbSet } from '@/utils/indexedDB';
+import { applyPromptTemplate } from '@/utils/promptTemplate';
 import React from 'react';
 
 const getReasoningParams = (reasoningState: ReasoningState) => {
@@ -131,12 +132,7 @@ export const processRowWithRetry = async (
     setProcessedRowCount: (count: number | ((prev: number) => number)) => void,
     retries = 2
 ): Promise<Record<string, string>> => {
-    let prompt = promptTemplate;
-    headers.forEach(header => {
-        const regex = new RegExp(`{{${header}}}`, 'g');
-        const value = row[header] !== undefined && row[header] !== null ? row[header] : '';
-        prompt = prompt.replace(regex, value);
-    });
+    const prompt = applyPromptTemplate(promptTemplate, row, headers);
 
     for (let i = 0; i <= retries; i++) {
         try {

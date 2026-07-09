@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/state/store';
 import Panel from '@/components/Panel';
 import { useMemo } from 'react';
+import { applyPromptTemplate } from '@/utils/promptTemplate';
 
 const PromptTemplatePanel: React.FC = () => {
   const { t } = useTranslation();
@@ -20,16 +21,7 @@ const PromptTemplatePanel: React.FC = () => {
       return 'Now, please enter a prompt template in the PromptTemplatePanel.';
     }
 
-    const selectedRow = csvData.rows[selectedRowIndex];
-    let result = promptTemplate;
-
-    csvData.headers.forEach(header => {
-      const regex = new RegExp(`{{${header}}}`, 'g');
-      const value = selectedRow[header] !== undefined && selectedRow[header] !== null ? selectedRow[header] : '';
-      result = result.replace(regex, value);
-    });
-
-    return result;
+    return applyPromptTemplate(promptTemplate, csvData.rows[selectedRowIndex], csvData.headers);
   }, [selectedRowIndex, promptTemplate, csvData]);
 
   const isInstructionalText = generatedPrompt.startsWith('To get started') || generatedPrompt.startsWith('Now, please enter');

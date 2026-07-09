@@ -6,6 +6,7 @@ import { SendIcon, SpinnerIcon, SettingsIcon } from '@/components/icons';
 import EstimateCostPanel from '@/components/EstimateCostPanel';
 import { handleTestApi } from '@/services/api';
 import AdvancedSettingsModal from './ApiPanel/AdvancedSettingsModal';
+import { applyPromptTemplate } from '@/utils/promptTemplate';
 
 const ApiPanel: React.FC = () => {
     const { t } = useTranslation();
@@ -49,16 +50,7 @@ const ApiPanel: React.FC = () => {
             return 'Now, please enter a prompt template in the PromptTemplatePanel.';
         }
 
-        const selectedRow = csvData.rows[selectedRowIndex];
-        let result = promptTemplate;
-
-        csvData.headers.forEach(header => {
-            const regex = new RegExp(`{{${header}}}`, 'g');
-            const value = selectedRow[header] !== undefined && selectedRow[header] !== null ? selectedRow[header] : '';
-            result = result.replace(regex, value);
-        });
-
-        return result;
+        return applyPromptTemplate(promptTemplate, csvData.rows[selectedRowIndex], csvData.headers);
     }, [selectedRowIndex, promptTemplate, csvData]);
 
     const onTestApiClick = () => {
