@@ -267,3 +267,95 @@ export const callApi = async ({
   const data = await response.json();
   return data.choices[0]?.message?.content || "No content returned from API.";
 };
+
+interface ProcessImagePromptParams {
+  task: import('@/types').ImageTask;
+  apiKey: string;
+  model: string;
+  temperature: number;
+  maxTokens: number;
+  topP: number;
+  topK: number;
+  frequencyPenalty: number;
+  presencePenalty: number;
+  isTemperatureEnabled: boolean;
+  isMaxTokensEnabled: boolean;
+  isTopPEnabled: boolean;
+  isTopKEnabled: boolean;
+  isFrequencyPenaltyEnabled: boolean;
+  isPresencePenaltyEnabled: boolean;
+  reasoningState: ReasoningState;
+  setImageTaskLoading: (id: string, loading: boolean) => void;
+  setImageTaskResponse: (id: string, response: string) => void;
+}
+
+export const processImagePrompt = async ({
+  task,
+  apiKey,
+  model,
+  temperature,
+  maxTokens,
+  topP,
+  topK,
+  frequencyPenalty,
+  presencePenalty,
+  isTemperatureEnabled,
+  isMaxTokensEnabled,
+  isTopPEnabled,
+  isTopKEnabled,
+  isFrequencyPenaltyEnabled,
+  isPresencePenaltyEnabled,
+  reasoningState,
+  setImageTaskLoading,
+  setImageTaskResponse,
+}: ProcessImagePromptParams): Promise<void> => {
+  if (!apiKey || !model || !task.prompt.trim()) {
+    alert('Please provide an API Key, model, and image prompt first.');
+    return;
+  }
+
+  setImageTaskLoading(task.id, true);
+  setImageTaskResponse(task.id, '');
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.href,
+        'X-Title': 'Turn Every Sheet Row Into a Chat Response',
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: task.prompt },
+              { type: 'image_url', image_url: { url: task.dataUrl } },
+            ],
+          },
+        ],
+        ...(isTemperatureEnabled && { temperature }),
+        ...(isMaxTokensEnabled && { max_tokens: maxTokens }),
+        ...(isTopPEnabled && { top_p: topP }),
+        ...(isTopKEnabled && { top_k: topK }),
+        ...(isFrequencyPenaltyEnabled && { frequency_penalty: frequencyPenalty }),
+        ...(isPresencePenaltyEnabled && { presence_penalty: presencePenalty }),
+        ...getReasoningParams(reasoningState),
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error?.message || `API request failed with status ${response.status}`);
+    }
+
+    setImageTaskResponse(task.id, data.choices[0]?.message?.content || 'No content returned from API.');
+  } catch (error) {
+    setImageTaskResponse(task.id, `Error: ${error instanceof Error ? error.message : 'An unknown error occurred.'}`);
+  } finally {
+    setImageTaskLoading(task.id, false);
+  }
+};

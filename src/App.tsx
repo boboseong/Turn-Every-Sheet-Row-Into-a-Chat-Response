@@ -6,11 +6,12 @@ import PromptTemplatePanel from '@/components/PromptTemplatePanel';
 import ApiPanel from '@/components/ApiPanel';
 import ActionPanel from '@/components/ActionPanel';
 import IndividualResultsPanel from '@/components/IndividualResultsPanel';
+import ImagePromptPanel from '@/components/ImagePromptPanel';
 import { useStore } from '@/state/store';
 
 const App: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const { loadInitialData, clearAllData } = useStore();
+  const { loadInitialData, clearAllData, workMode, setWorkMode } = useStore();
 
   useEffect(() => {
     loadInitialData();
@@ -40,14 +41,34 @@ const App: React.FC = () => {
           </button>
         </div>
         <p className="text-center text-gray-400 mt-1">{t('guide_text')}</p>
+        <div className="mt-3 flex justify-center gap-2" role="group" aria-label={t('work_mode')}>
+          <button
+            onClick={() => setWorkMode('sheet')}
+            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${workMode === 'sheet' ? 'bg-teal-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+          >
+            {t('sheet_mode')}
+          </button>
+          <button
+            onClick={() => setWorkMode('image')}
+            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${workMode === 'image' ? 'bg-teal-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+          >
+            {t('image_mode')}
+          </button>
+        </div>
       </header>
        <div className="flex-1 overflow-y-auto p-4">
         <main className="max-w-screen-xl mx-auto w-full space-y-4">
-          <SheetUploadPanel />
-          <PromptTemplatePanel />
+          {workMode === 'sheet' ? (
+            <>
+              <SheetUploadPanel />
+              <PromptTemplatePanel />
+            </>
+          ) : (
+            <ImagePromptPanel />
+          )}
           <ApiPanel />
-          <ActionPanel />
-          <IndividualResultsPanel />
+          {workMode === 'sheet' && <ActionPanel />}
+          {workMode === 'sheet' && <IndividualResultsPanel />}
         </main>
       </div>
     </div>
