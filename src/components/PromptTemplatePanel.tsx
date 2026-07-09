@@ -2,6 +2,7 @@
 import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/state/store';
+import { MISSING_ROW_MESSAGE, MISSING_TEMPLATE_MESSAGE, renderPromptTemplate } from '@/utils/prompt';
 import Panel from '@/components/Panel';
 import { useMemo } from 'react';
 
@@ -12,27 +13,12 @@ const PromptTemplatePanel: React.FC = () => {
   const headers = csvData.headers;
   const disabled = headers.length === 0;
 
-  const generatedPrompt = useMemo(() => {
-    if (selectedRowIndex === null || !csvData.rows[selectedRowIndex]) {
-      return 'To get started, please select a data row from the Sheet Upload Panel.';
-    }
-    if (!promptTemplate) {
-      return 'Now, please enter a prompt template in the PromptTemplatePanel.';
-    }
+  const generatedPrompt = useMemo(
+    () => renderPromptTemplate(csvData, selectedRowIndex, promptTemplate),
+    [csvData, selectedRowIndex, promptTemplate],
+  );
 
-    const selectedRow = csvData.rows[selectedRowIndex];
-    let result = promptTemplate;
-
-    csvData.headers.forEach(header => {
-      const regex = new RegExp(`{{${header}}}`, 'g');
-      const value = selectedRow[header] !== undefined && selectedRow[header] !== null ? selectedRow[header] : '';
-      result = result.replace(regex, value);
-    });
-
-    return result;
-  }, [selectedRowIndex, promptTemplate, csvData]);
-
-  const isInstructionalText = generatedPrompt.startsWith('To get started') || generatedPrompt.startsWith('Now, please enter');
+  const isInstructionalText = generatedPrompt === MISSING_ROW_MESSAGE || generatedPrompt === MISSING_TEMPLATE_MESSAGE;
 
   const handleTagClick = (header: string) => {
     const textarea = textareaRef.current;

@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
     // 👇 GitHub Pages 배포를 위한 base 경로 추가
-    base: '/Turn-Every-Sheet-Row-Into-a-Chat-Response/',
+    base: './',
     
     // 👇 React 플러그인 추가
     plugins: [react()], 
