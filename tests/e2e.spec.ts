@@ -2,7 +2,12 @@ import { test, expect } from '@playwright/test';
 
 test.describe('CSV-based Dynamic Prompt Generator E2E Test', () => {
   test('should allow a user to upload a CSV, generate prompts, and download the results', async ({ page }) => {
+    const prompts: string[] = [];
     await page.route('**/openrouter.ai/api/v1/chat/completions', async (route) => {
+      prompts.push(route.request().postDataJSON().messages[0].content);
+      if (prompts.length === 1) {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -44,13 +49,18 @@ test.describe('CSV-based Dynamic Prompt Generator E2E Test', () => {
     await page.getByPlaceholder('Enter your OpenRouter API key').fill('test-api-key');
     await page.getByPlaceholder('Enter the model name').fill('google/gemini-2.5-flash-lite');
 
-    await page.getByRole('button', { name: 'Test Prompt' }).click();
+    await page.getByRole('button', { name: 'Test First Row Prompt' }).click();
+
+    await expect(page.getByRole('button', { name: 'Testing First Row Prompt...' })).toBeVisible();
+    await expect(page.getByText('First Row Prompt Test Result')).toBeVisible();
 
     await expect(page.getByTestId('test-api-cost')).toHaveText('$0.001000');
     await expect(page.getByTestId('estimated-total-cost')).toHaveText('$0.001600 - $0.006000');
+    expect(prompts[0]).toBe('Create a story about John Doe who is 30 years old and lives in New York. (within 100 characters)');
+    await expect(page.getByText('Create a story about Jane Smith who is 28 years old and lives in London. (within 100 characters)')).toBeVisible();
 
-    // 7. Click "Start Processing"
-    await page.getByRole('button', { name: 'start processing' }).click();
+    // 7. Process all rows
+    await page.getByRole('button', { name: 'Process All Rows' }).click();
 
     // 8. Verify processing progress and completion
     //await expect(page.getByText('2 / 2 processed')).toBeVisible({ timeout: 10000 });
@@ -58,7 +68,7 @@ test.describe('CSV-based Dynamic Prompt Generator E2E Test', () => {
     // 9. Download the results
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'download results' }).click();
-    await page.getByRole('menuitem', { name: 'Download Results as CSV' }).click();
+    await page.getByRole('menuitem', { name: 'Download CSV' }).click();
     const download = await downloadPromise;
 
     // Verify the downloaded file

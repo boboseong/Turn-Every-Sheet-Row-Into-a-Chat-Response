@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/state/store';
 import { callApi } from '@/services/api';
 import { applyPromptTemplate } from '@/utils/promptTemplate';
+import { formatOrdinal } from '@/utils/ordinal';
 
 interface ResultModalProps {
   rowIndex: number;
@@ -10,7 +11,7 @@ interface ResultModalProps {
 }
 
 const ResultModal: React.FC<ResultModalProps> = ({ rowIndex, onClose }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     csvData,
     promptTemplate,
@@ -42,7 +43,9 @@ const ResultModal: React.FC<ResultModalProps> = ({ rowIndex, onClose }) => {
       setIndividualResponse(rowIndex, apiResponse);
     } catch (error) {
       console.error(error);
-      alert('Error getting response from AI. Please check the console for details.');
+      alert(t('request_failed', {
+        message: error instanceof Error ? error.message : t('unknown_error'),
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -50,10 +53,17 @@ const ResultModal: React.FC<ResultModalProps> = ({ rowIndex, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl h-3/4 flex flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="row-result-modal-title"
+        className="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl h-3/4 flex flex-col"
+      >
         <div className="p-4 border-b border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold">{t('row')} {rowIndex + 1}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">&times;</button>
+          <h2 id="row-result-modal-title" className="text-xl font-bold">
+            {t('row_modal_title', { ordinal: formatOrdinal(rowIndex + 1, i18n.language) })}
+          </h2>
+          <button onClick={onClose} aria-label={t('close')} className="text-gray-400 hover:text-white">&times;</button>
         </div>
         <div className="p-4 flex-grow overflow-auto">
           <div className="mb-4 p-2 bg-gray-900 rounded">
@@ -69,7 +79,9 @@ const ResultModal: React.FC<ResultModalProps> = ({ rowIndex, onClose }) => {
             <div className="flex flex-col">
               <h3 className="text-lg font-semibold mb-2">{t('ai_response')}</h3>
               <div className="flex-grow p-2 bg-gray-900 rounded overflow-auto">
-                {isLoading ? <p>{t('loading')}...</p> : <pre className="whitespace-pre-wrap text-sm">{response}</pre>}
+                {isLoading
+                  ? <p>{t('getting_response')}</p>
+                  : <pre className="whitespace-pre-wrap text-sm">{response || t('response_placeholder')}</pre>}
               </div>
             </div>
           </div>

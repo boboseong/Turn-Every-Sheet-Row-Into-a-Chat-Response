@@ -13,18 +13,16 @@ const PromptTemplatePanel: React.FC = () => {
   const headers = csvData.headers;
   const disabled = headers.length === 0;
 
-  const generatedPrompt = useMemo(() => {
+  const previewContent = useMemo(() => {
     if (selectedRowIndex === null || !csvData.rows[selectedRowIndex]) {
-      return 'To get started, please select a data row from the Sheet Upload Panel.';
+      return t('prompt_preview_upload_sheet');
     }
-    if (!promptTemplate) {
-      return 'Now, please enter a prompt template in the PromptTemplatePanel.';
+    if (!promptTemplate.trim()) {
+      return t('prompt_preview_enter_template');
     }
 
     return applyPromptTemplate(promptTemplate, csvData.rows[selectedRowIndex], csvData.headers);
-  }, [selectedRowIndex, promptTemplate, csvData]);
-
-  const isInstructionalText = generatedPrompt.startsWith('To get started') || generatedPrompt.startsWith('Now, please enter');
+  }, [selectedRowIndex, promptTemplate, csvData, t]);
 
   const handleTagClick = (header: string) => {
     const textarea = textareaRef.current;
@@ -72,7 +70,7 @@ const PromptTemplatePanel: React.FC = () => {
         <div className="mt-4">
           <label className="block text-sm font-medium text-gray-300 mb-1">{t('generated_prompt')}</label>
           <pre className="p-3 bg-gray-900 border border-gray-700 rounded-md font-sans text-base whitespace-pre-wrap break-words h-64 overflow-auto text-gray-400">
-            {isInstructionalText ? t('no_prompt_template') : generatedPrompt}
+            {previewContent}
           </pre>
         </div>
       </div>

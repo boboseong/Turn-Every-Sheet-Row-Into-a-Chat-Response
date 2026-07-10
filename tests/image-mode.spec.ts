@@ -43,7 +43,7 @@ test.describe('Image mode shared prompt', () => {
 
     await openImageMode(page);
 
-    const testButton = page.getByRole('button', { name: 'Test Prompt' });
+    const testButton = page.getByRole('button', { name: 'Test First Image Prompt' });
     await expect(testButton).toBeDisabled();
     await page.locator('input[type="file"][multiple]').setInputFiles([redImage, blueImage]);
     await page.getByLabel('Shared image prompt').fill('Test the first image.');
@@ -53,6 +53,7 @@ test.describe('Image mode shared prompt', () => {
     await testButton.click();
 
     await expect(page.getByText('First image test response')).toBeVisible();
+    await expect(page.getByText('First Image Prompt Test Result')).toBeVisible();
     await expect(page.getByTestId('test-api-cost')).toHaveText('$0.001000');
     await expect(page.getByTestId('estimated-total-cost')).toHaveText('$0.001600 - $0.006000');
     expect(requests).toEqual([{ prompt: 'Test the first image.', imageUrl: redImageDataUrl }]);
@@ -98,7 +99,7 @@ test.describe('Image mode shared prompt', () => {
 
     const processButton = page.locator('button[aria-busy]');
     const promptInput = page.getByLabel('Shared image prompt');
-    await expect(processButton).toHaveText('Start Processing');
+    await expect(processButton).toHaveText('Process All Images');
     await expect(processButton).toBeDisabled();
     await expect(page.locator('textarea')).toHaveCount(1);
 
@@ -111,11 +112,11 @@ test.describe('Image mode shared prompt', () => {
     await expect(processButton).toBeDisabled();
     await expect(promptInput).toBeDisabled();
 
-    await page.getByRole('button', { name: 'Image result 1: red.svg' }).click();
-    await expect(page.getByRole('dialog', { name: 'Image 1 · red.svg' })).toContainText('Red image response');
+    await page.getByRole('button', { name: 'First image result: red.svg' }).click();
+    await expect(page.getByRole('dialog', { name: 'First image · red.svg' })).toContainText('Red image response');
     await page.getByRole('button', { name: 'Close' }).click();
-    await page.getByRole('button', { name: 'Image result 2: blue.svg' }).click();
-    await expect(page.getByRole('dialog', { name: 'Image 2 · blue.svg' })).toContainText('Error: Blue image failed');
+    await page.getByRole('button', { name: 'Second image result: blue.svg' }).click();
+    await expect(page.getByRole('dialog', { name: 'Second image · blue.svg' })).toContainText('Request failed: Blue image failed');
     await page.getByRole('button', { name: 'Close' }).click();
     await expect(processButton).toBeEnabled();
     await expect(promptInput).toBeEnabled();
@@ -176,8 +177,8 @@ test.describe('Image mode shared prompt', () => {
     await page.reload();
 
     await expect(page.getByLabel('Shared image prompt')).toHaveValue('Use this legacy prompt.');
-    await page.getByRole('button', { name: 'Image result 1: legacy-red.svg' }).click();
-    await expect(page.getByRole('dialog', { name: 'Image 1 · legacy-red.svg' })).toContainText('Stored response');
+    await page.getByRole('button', { name: 'First image result: legacy-red.svg' }).click();
+    await expect(page.getByRole('dialog', { name: 'First image · legacy-red.svg' })).toContainText('Stored response');
 
     const storedTasks = await page.evaluate(async () => {
       const database = await new Promise<IDBDatabase>((resolve, reject) => {

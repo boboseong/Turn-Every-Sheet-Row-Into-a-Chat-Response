@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/state/store';
 import Panel from '@/components/Panel';
 import ResultModal from '@/components/ResultModal';
+import { formatOrdinal } from '@/utils/ordinal';
 
 const IndividualResultsPanel: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { csvData, individualResponses } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
@@ -29,6 +30,9 @@ const IndividualResultsPanel: React.FC = () => {
               <button
                 key={rowIndex}
                 onClick={() => handleOpenModal(rowIndex)}
+                aria-label={t('row_result_button', {
+                  ordinal: formatOrdinal(rowIndex + 1, i18n.language),
+                })}
                 className={`p-2 rounded ${
                   individualResponses[rowIndex]
                     ? 'bg-teal-500 hover:bg-teal-600'

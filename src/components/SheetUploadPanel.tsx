@@ -232,7 +232,7 @@ const SheetUploadPanel: React.FC = () => {
                     className="hidden"
                 />
                 <UploadIcon className="w-12 h-12 text-gray-500 mb-2"/>
-                <p className="text-gray-400">{t('guide_text')}</p>
+                <p className="text-gray-400">{t('sheet_dropzone_title')}</p>
                 <p className="text-gray-500 text-sm">{t('file_placeholder')}</p>
               </div>
             )}

@@ -1,7 +1,7 @@
-import { CostEstimateStatus, CsvData, ImageTask, ReasoningState } from '@/types';
+import i18n from '@/i18n';
+import { CostEstimateStatus, CsvData, ImageTask, ReasoningState, WorkMode } from '@/types';
 import { idbSet } from '@/utils/indexedDB';
 import { applyPromptTemplate } from '@/utils/promptTemplate';
-import React from 'react';
 
 const getReasoningParams = (reasoningState: ReasoningState) => {
     switch (reasoningState) {
@@ -34,6 +34,7 @@ export const handleTestApi = async (
     isFrequencyPenaltyEnabled: boolean,
     isPresencePenaltyEnabled: boolean,
     reasoningState: ReasoningState,
+    workMode: WorkMode,
     setApiLoading: (loading: boolean) => void,
     setApiResponse: (response: string) => void,
     setLastApiCost: (cost: number | null) => void,
@@ -42,9 +43,8 @@ export const handleTestApi = async (
     imageDataUrl?: string,
     totalItemCount?: number,
 ) => {
-    const isInstructional = generatedPrompt.startsWith('To get started') || generatedPrompt.startsWith('Now, please enter');
-    if (!apiKey || !model || !generatedPrompt || isInstructional) {
-        alert("Please provide an API Key, model, and generate a valid prompt first.");
+    if (!apiKey || !model || !generatedPrompt) {
+        alert(i18n.t(workMode === 'image' ? 'test_requirements_image' : 'test_requirements_sheet'));
         return;
     }
 
@@ -110,7 +110,7 @@ export const handleTestApi = async (
             setCostEstimateStatus('unavailable');
         }
 
-        const content = data.choices[0]?.message?.content || "No content returned from API.";
+        const content = data.choices[0]?.message?.content || i18n.t('no_api_content');
         setApiResponse(content);
 
     } catch (error) {
@@ -118,9 +118,9 @@ export const handleTestApi = async (
         setEstimatedTotalCost(null);
         setCostEstimateStatus('unavailable');
         if (error instanceof Error) {
-            setApiResponse(`Error: ${error.message}`);
+            setApiResponse(i18n.t('request_failed', { message: error.message }));
         } else {
-            setApiResponse("An unknown error occurred.");
+            setApiResponse(i18n.t('unknown_error'));
         }
     } finally {
         setApiLoading(false);
@@ -180,23 +180,26 @@ export const processRowWithRetry = async (
             }
 
             const data = await response.json();
-            const content = data.choices[0]?.message?.content || "No content returned.";
+            const content = data.choices[0]?.message?.content || i18n.t('no_api_content');
 
             setProcessedRowCount(prev => prev + 1);
             return { ...row, 'api_response': content };
 
         } catch (error) {
             if (i === retries) {
-                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+                const errorMessage = error instanceof Error ? error.message : i18n.t('unknown_error');
                 setProcessedRowCount(prev => prev + 1);
-                return { ...row, 'api_response': `Error: ${errorMessage}` };
+                return { ...row, 'api_response': i18n.t('request_failed', { message: errorMessage }) };
             }
             await new Promise(resolve => setTimeout(resolve, 1000)); // 1-second wait
         }
     }
     // This part should not be reachable
     setProcessedRowCount(prev => prev + 1);
-    return { ...row, 'api_response': 'Error: Max retries reached, but no result was returned.' };
+    return {
+        ...row,
+        'api_response': i18n.t('request_failed', { message: i18n.t('max_retries_reached') }),
+    };
 };
 
 export const handleProcessAllRows = async (
@@ -221,8 +224,8 @@ export const handleProcessAllRows = async (
     setIsProcessingAllRows: (processing: boolean) => void,
     setProcessedResults: (results: Record<string, string>[]) => void
 ) => {
-    if (!apiKey || !model || !promptTemplate) {
-        alert("Please provide an API Key, model, and a prompt template first.");
+    if (!apiKey || !model || !promptTemplate || csvData.rows.length === 0) {
+        alert(i18n.t('batch_requirements_sheet'));
         return;
     }
 
@@ -282,7 +285,7 @@ export const callApi = async ({
   }
 
   const data = await response.json();
-  return data.choices[0]?.message?.content || "No content returned from API.";
+  return data.choices[0]?.message?.content || i18n.t('no_api_content');
 };
 
 interface ProcessImagePromptParams {
@@ -328,8 +331,8 @@ export const processImagePrompt = async ({
   setImageTaskLoading,
   setImageTaskResponse,
 }: ProcessImagePromptParams): Promise<void> => {
-  if (!apiKey || !model || !prompt.trim()) {
-    alert('Please provide an API Key, model, and image prompt first.');
+  if (!apiKey || !model || !prompt.trim() || !task.dataUrl) {
+    alert(i18n.t('batch_requirements_image'));
     return;
   }
 
@@ -371,9 +374,10 @@ export const processImagePrompt = async ({
       throw new Error(data.error?.message || `API request failed with status ${response.status}`);
     }
 
-    setImageTaskResponse(task.id, data.choices[0]?.message?.content || 'No content returned from API.');
+    setImageTaskResponse(task.id, data.choices[0]?.message?.content || i18n.t('no_api_content'));
   } catch (error) {
-    setImageTaskResponse(task.id, `Error: ${error instanceof Error ? error.message : 'An unknown error occurred.'}`);
+    const errorMessage = error instanceof Error ? error.message : i18n.t('unknown_error');
+    setImageTaskResponse(task.id, i18n.t('request_failed', { message: errorMessage }));
   } finally {
     setImageTaskLoading(task.id, false);
   }

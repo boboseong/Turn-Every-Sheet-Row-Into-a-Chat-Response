@@ -151,9 +151,9 @@ test.describe('Excel workbook upload', () => {
     await promptInput.fill('Describe {{name}}.');
     await apiKeyInput.fill('test-api-key');
 
-    await page.getByRole('button', { name: 'Test Prompt' }).click();
+    await page.getByRole('button', { name: 'Test First Row Prompt' }).click();
     await expect(page.getByTestId('test-api-cost')).toHaveText('$0.001000');
-    await page.getByRole('button', { name: 'Start Processing' }).click();
+    await page.getByRole('button', { name: 'Process All Rows' }).click();
     await expect(page.getByRole('button', { name: 'Download Results' })).toBeEnabled();
 
     page.once('dialog', (dialog) => dialog.accept());

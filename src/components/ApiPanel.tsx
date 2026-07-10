@@ -21,7 +21,6 @@ const ApiPanel: React.FC = () => {
         workMode,
         imageTasks,
         imagePrompt,
-        selectedRowIndex,
         promptTemplate,
         temperature,
         maxTokens,
@@ -48,22 +47,30 @@ const ApiPanel: React.FC = () => {
 
     const generatedPrompt = useMemo(() => {
         if (workMode === 'image') {
-            return imagePrompt;
+            return imagePrompt.trim();
         }
-        if (selectedRowIndex === null || !csvData.rows[selectedRowIndex]) {
-            return 'To get started, please select a data row from the Sheet Upload Panel.';
-        }
-        if (!promptTemplate) {
-            return 'Now, please enter a prompt template in the PromptTemplatePanel.';
+        if (!promptTemplate.trim() || !csvData.rows[0]) {
+            return '';
         }
 
-        return applyPromptTemplate(promptTemplate, csvData.rows[selectedRowIndex], csvData.headers);
-    }, [workMode, imagePrompt, selectedRowIndex, promptTemplate, csvData]);
+        return applyPromptTemplate(promptTemplate, csvData.rows[0], csvData.headers);
+    }, [workMode, imagePrompt, promptTemplate, csvData]);
 
     const isTestDisabled = apiLoading
         || !apiKey
         || !model
-        || (workMode === 'image' && (!imagePrompt.trim() || imageTasks.length === 0));
+        || (workMode === 'image'
+            ? !imagePrompt.trim() || imageTasks.length === 0
+            : !promptTemplate.trim() || csvData.rows.length === 0);
+    const testButtonLabel = workMode === 'image'
+        ? t('test_first_image_prompt')
+        : t('test_first_row_prompt');
+    const testingLabel = workMode === 'image'
+        ? t('testing_first_image_prompt')
+        : t('testing_first_row_prompt');
+    const testResultTitle = workMode === 'image'
+        ? t('first_image_test_result')
+        : t('first_row_test_result');
 
     const onTestApiClick = () => {
         handleTestApi(
@@ -85,6 +92,7 @@ const ApiPanel: React.FC = () => {
             isFrequencyPenaltyEnabled,
             isPresencePenaltyEnabled,
             reasoningState,
+            workMode,
             setApiLoading,
             setApiResponse,
             setLastApiCost,
@@ -130,7 +138,7 @@ const ApiPanel: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="text-center space-x-2">
+                <div className="flex flex-wrap justify-center gap-2 text-center">
                     <button
                         onClick={() => setIsAdvancedSettingsOpen(true)}
                         className="inline-flex items-center gap-2 justify-center px-4 py-2 border border-gray-600 text-base font-medium rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-teal-500 transition-colors"
@@ -146,28 +154,28 @@ const ApiPanel: React.FC = () => {
                         {apiLoading ? (
                             <>
                                 <SpinnerIcon className="w-5 h-5 animate-spin" />
-                                <span>{t('processing_all_rows')}</span>
+                                <span>{testingLabel}</span>
                             </>
                         ) : (
                             <>
                                 <SendIcon className="w-5 h-5" />
-                                <span>{t('test_prompt')}</span>
+                                <span>{testButtonLabel}</span>
                             </>
                         )}
                     </button>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">{t('api_response')}</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">{testResultTitle}</label>
                     <div className="p-3 bg-gray-900 border border-gray-700 rounded-md min-h-[120px] text-gray-200">
                         {apiLoading ? (
                             <div className="flex items-center justify-center h-full text-gray-400">
                                 <SpinnerIcon className="w-6 h-6 animate-spin mr-2"/>
-                                {t('processing_all_rows')}
+                                {testingLabel}
                             </div>
                         ) : (
                             <pre className="whitespace-pre-wrap break-words font-sans text-base">
-                                {apiResponse || <span className="text-gray-500">{t('api_response')}</span>}
+                                {apiResponse || <span className="text-gray-500">{t('test_result_placeholder')}</span>}
                             </pre>
                         )}
                     </div>

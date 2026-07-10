@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/state/store';
+import { formatOrdinal } from '@/utils/ordinal';
 
 interface ImageResultModalProps {
   taskId: string;
@@ -8,14 +9,17 @@ interface ImageResultModalProps {
 }
 
 const ImageResultModal: React.FC<ImageResultModalProps> = ({ taskId, onClose }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { imageTasks, imagePrompt } = useStore();
   const taskIndex = imageTasks.findIndex((task) => task.id === taskId);
   const task = imageTasks[taskIndex];
 
   if (!task) return null;
 
-  const title = t('image_modal_title', { index: taskIndex + 1, name: task.name });
+  const title = t('image_modal_title', {
+    ordinal: formatOrdinal(taskIndex + 1, i18n.language),
+    name: task.name,
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -44,7 +48,7 @@ const ImageResultModal: React.FC<ImageResultModalProps> = ({ taskId, onClose }) 
           <div className="flex min-h-64 flex-col">
             <h3 className="mb-2 text-lg font-semibold">{t('ai_response')}</h3>
             <pre className="flex-1 whitespace-pre-wrap break-words rounded-md bg-gray-900 p-3 font-sans text-sm text-gray-200">
-              {task.loading ? t('getting_response') : task.response || t('api_response')}
+              {task.loading ? t('getting_response') : task.response || t('response_placeholder')}
             </pre>
           </div>
         </div>

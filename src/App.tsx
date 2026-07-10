@@ -21,7 +21,7 @@ const App: React.FC = () => {
   }, [loadInitialData]);
 
   const handleClearAndRefresh = async () => {
-    if (window.confirm('Are you sure you want to clear all data and refresh? This action cannot be undone.')) {
+    if (window.confirm(t('confirm_clear_all_data'))) {
       await clearAllData();
       location.reload();
     }
@@ -43,7 +43,9 @@ const App: React.FC = () => {
             {t('clear_all_data')}
           </button>
         </div>
-        <p className="text-center text-gray-400 mt-1">{t('guide_text')}</p>
+        <p className="text-center text-gray-400 mt-1">
+          {t(workMode === 'sheet' ? 'sheet_guide_text' : 'image_guide_text')}
+        </p>
         <div className="mt-3 flex justify-center gap-2" role="group" aria-label={t('work_mode')}>
           <button
             onClick={() => setWorkMode('sheet')}

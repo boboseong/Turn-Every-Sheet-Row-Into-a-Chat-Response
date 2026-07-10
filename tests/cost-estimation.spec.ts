@@ -44,7 +44,7 @@ test.describe('Cost estimation', () => {
     });
 
     await prepareSheetTest(page);
-    const testButton = page.getByRole('button', { name: 'Test Prompt' });
+    const testButton = page.getByRole('button', { name: 'Test First Row Prompt' });
 
     await testButton.click();
     await expect(page.getByText('Zero cost response')).toBeVisible();
@@ -63,7 +63,7 @@ test.describe('Cost estimation', () => {
     await expect(page.getByTestId('cost-estimate-status')).toHaveText('Cost information was not available in the API response.');
 
     await testButton.click();
-    await expect(page.getByText('Error: Request failed')).toBeVisible();
+    await expect(page.getByText('Request failed: Request failed')).toBeVisible();
     await expect(page.getByTestId('test-api-cost')).toHaveText('-');
     await expect(page.getByTestId('estimated-total-cost')).toHaveText('-');
     await expect(page.getByTestId('cost-estimate-status')).toHaveText('Cost information was not available in the API response.');

@@ -1,6 +1,6 @@
 # Turn Every Sheet Row Into a Chat Response
 
-This is a simple web application that allows you to upload a CSV file, create a dynamic prompt template, and generate prompts for each row in the CSV. You can then use the OpenRouter API to test the generated prompts and process all rows in the CSV.
+This web application lets you process spreadsheet rows or uploaded images with the OpenRouter API. Spreadsheet mode creates prompts from row data, while image mode applies one shared prompt to every uploaded image.
 
 ## Features
 
@@ -8,17 +8,18 @@ This is a simple web application that allows you to upload a CSV file, create a 
 - View and select rows from the uploaded file
 - Create a dynamic prompt template using the headers from the CSV
 - Generate a prompt for each row in the CSV
-- Test the generated prompt with the OpenRouter API
+- Test the first spreadsheet row or first uploaded image with the OpenRouter API
 - Process all rows in the CSV and download the results as a CSV or XLSX file
+- Process multiple images with one shared prompt
 - Estimate the cost of processing all rows
 
 ## How to Use
 
 1.  **Upload a CSV file**: Drag and drop a CSV file onto the Sheet Upload Panel, or click to select a file.
 2.  **Create a prompt template**: Use the headers from your CSV to create a prompt template in the PromptTemplatePanel. For example, if you have a header called "name", you can use `{{name}}` in your template.
-3.  **Generate a prompt**: Select a row in the Sheet Upload Panel to see the generated prompt in the right panel.
-4.  **Test with OpenRouter**: Enter your OpenRouter API key and model in the API panel, and then click "Test" to see the API response.
-5.  **Process all rows**: Click "Start Processing" to run the generated prompt for all rows in your CSV.
+3.  **Preview a prompt**: Select a row in the Sheet Upload Panel to preview its generated prompt. This selection is independent from the first-row test.
+4.  **Test with OpenRouter**: Enter your OpenRouter API key and model, then click **Test First Row Prompt**. In image mode, click **Test First Image Prompt**.
+5.  **Process all rows**: Click **Process All Rows** to run the generated prompt for all rows in your CSV.
 6.  **Download results**: Once the processing is complete, you can download the results as a CSV or XLSX file.
 
 ## How to Run Locally

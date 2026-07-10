@@ -66,7 +66,7 @@ const ActionPanel: React.FC = () => {
 
     const handleDownload = (format: 'csv' | 'xlsx') => {
         if (processedResults.length === 0) {
-            alert("No results to download.");
+            alert(t('no_results_download'));
             return;
         }
         const resultsToDownload = processedResults;
@@ -129,7 +129,7 @@ const ActionPanel: React.FC = () => {
             </div>
             <div className="p-4 space-y-4 text-center">
                 <p className="text-gray-400">
-                    {t('processing_all_rows')} <strong>{csvRowCount}</strong> {t('total_rows')}.
+                    {t('sheet_batch_summary', { count: csvRowCount })}
                 </p>
                 {isProcessingAllRows && (
                     <div>
@@ -153,7 +153,7 @@ const ActionPanel: React.FC = () => {
                         ) : (
                             <>
                                 <PlayIcon className="w-5 h-5" />
-                                <span>{t('start_processing')}</span>
+                                <span>{t('process_all_rows')}</span>
                             </>
                         )}
                     </button>
@@ -174,14 +174,14 @@ const ActionPanel: React.FC = () => {
                                         className="block w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-600"
                                         role="menuitem"
                                     >
-                                        {t('download_results')} as CSV
+                                        {t('download_csv')}
                                     </button>
                                     <button
                                         onClick={() => handleDownload('xlsx')}
                                         className="block w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-600"
                                         role="menuitem"
                                     >
-                                        {t('download_results')} as XLSX
+                                        {t('download_xlsx')}
                                     </button>
                                 </div>
                             </div>

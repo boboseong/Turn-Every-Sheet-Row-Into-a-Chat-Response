@@ -4,9 +4,10 @@ import Panel from '@/components/Panel';
 import { SpinnerIcon } from '@/components/icons';
 import ImageResultModal from '@/components/ImageResultModal';
 import { useStore } from '@/state/store';
+import { formatOrdinal } from '@/utils/ordinal';
 
 const ImageIndividualResultsPanel: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { imageTasks } = useStore();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -19,7 +20,10 @@ const ImageIndividualResultsPanel: React.FC = () => {
               <button
                 key={task.id}
                 onClick={() => setSelectedTaskId(task.id)}
-                aria-label={t('image_result_button', { index: index + 1, name: task.name })}
+                aria-label={t('image_result_button', {
+                  ordinal: formatOrdinal(index + 1, i18n.language),
+                  name: task.name,
+                })}
                 className={`flex min-h-10 items-center justify-center rounded p-2 ${
                   task.response
                     ? 'bg-teal-500 hover:bg-teal-600'

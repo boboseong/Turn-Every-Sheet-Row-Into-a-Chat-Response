@@ -92,7 +92,7 @@ const ImageActionPanel: React.FC = () => {
           ) : (
             <>
               <PlayIcon className="h-5 w-5" />
-              <span>{t('start_processing')}</span>
+              <span>{t('process_all_images')}</span>
             </>
           )}
         </button>
