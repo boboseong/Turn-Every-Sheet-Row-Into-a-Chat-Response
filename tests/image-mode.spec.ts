@@ -68,7 +68,7 @@ test.describe('Image mode shared prompt', () => {
       const imageUrl = content.find((item: { type: string }) => item.type === 'image_url').image_url.url;
       requests.push({ prompt, imageUrl });
 
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       if (imageUrl === redImageDataUrl) {
         await route.fulfill({
@@ -80,7 +80,7 @@ test.describe('Image mode shared prompt', () => {
       }
 
       await route.fulfill({
-        status: 429,
+        status: 400,
         contentType: 'application/json',
         body: JSON.stringify({ error: { message: 'Blue image failed' } }),
       });
@@ -108,7 +108,8 @@ test.describe('Image mode shared prompt', () => {
     await expect(processButton).toBeEnabled();
 
     await processButton.click();
-    await expect(processButton).toBeDisabled();
+    await expect(processButton).toHaveText('Stop Processing');
+    await expect(processButton).toBeEnabled();
     await expect(promptInput).toBeDisabled();
 
     await page.getByRole('button', { name: 'Image result 1: red.svg' }).click();

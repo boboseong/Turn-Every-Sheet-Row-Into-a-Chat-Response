@@ -16,3 +16,17 @@ export interface ImageTask {
 }
 
 export type WorkMode = 'sheet' | 'image';
+
+export type BatchStatus = 'idle' | 'running' | 'stopping' | 'stopped' | 'completed';
+
+export interface BatchRequestSnapshot {
+  model: string;
+  prompt: string;
+  temperature: number | null;
+  maxTokens: number | null;
+  topP: number | null;
+  topK: number | null;
+  frequencyPenalty: number | null;
+  presencePenalty: number | null;
+  reasoningState: ReasoningState;
+}

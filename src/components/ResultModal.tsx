@@ -18,6 +18,7 @@ const ResultModal: React.FC<ResultModalProps> = ({ rowIndex, onClose }) => {
     model,
     individualResponses,
     setIndividualResponse,
+    activeBatchMode,
   } = useStore();
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +31,7 @@ const ResultModal: React.FC<ResultModalProps> = ({ rowIndex, onClose }) => {
   }, [csvData, promptTemplate, row]);
 
   const handleGetResponse = async () => {
+    if (activeBatchMode !== null) return;
     setIsLoading(true);
     try {
       const apiResponse = await callApi({
@@ -77,8 +79,8 @@ const ResultModal: React.FC<ResultModalProps> = ({ rowIndex, onClose }) => {
         <div className="p-4 border-t border-gray-700 flex justify-center">
           <button
             onClick={handleGetResponse}
-            className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded"
-            disabled={isLoading}
+            className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isLoading || activeBatchMode !== null}
           >
             {isLoading ? t('getting_response') : t('get_response')}
           </button>

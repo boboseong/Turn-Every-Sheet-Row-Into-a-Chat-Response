@@ -43,7 +43,9 @@ const ApiPanel: React.FC = () => {
         setCostEstimateStatus,
         isAdvancedSettingsOpen,
         setIsAdvancedSettingsOpen,
+        activeBatchMode,
     } = useStore();
+    const isBatchLocked = activeBatchMode !== null;
     const inputStyles = "w-full p-2 bg-gray-900 border border-gray-600 rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-none text-gray-200 placeholder-gray-500";
 
     const generatedPrompt = useMemo(() => {
@@ -61,6 +63,7 @@ const ApiPanel: React.FC = () => {
     }, [workMode, imagePrompt, selectedRowIndex, promptTemplate, csvData]);
 
     const isTestDisabled = apiLoading
+        || isBatchLocked
         || !apiKey
         || !model
         || (workMode === 'image' && (!imagePrompt.trim() || imageTasks.length === 0));
@@ -111,6 +114,7 @@ const ApiPanel: React.FC = () => {
                             id="apiKey"
                             value={apiKey}
                             onChange={(e) => setApiKey(e.target.value)}
+                            disabled={isBatchLocked}
                             className={inputStyles}
                             placeholder={t('enter_api_key')}
                         />
@@ -124,6 +128,7 @@ const ApiPanel: React.FC = () => {
                             id="model"
                             value={model}
                             onChange={(e) => setModel(e.target.value)}
+                            disabled={isBatchLocked}
                             className={inputStyles}
                             placeholder={t('enter_model_name')}
                         />
@@ -133,7 +138,8 @@ const ApiPanel: React.FC = () => {
                 <div className="text-center space-x-2">
                     <button
                         onClick={() => setIsAdvancedSettingsOpen(true)}
-                        className="inline-flex items-center gap-2 justify-center px-4 py-2 border border-gray-600 text-base font-medium rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-teal-500 transition-colors"
+                        disabled={isBatchLocked}
+                        className="inline-flex items-center gap-2 justify-center px-4 py-2 border border-gray-600 text-base font-medium rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-teal-500 transition-colors"
                     >
                         <SettingsIcon className="w-5 h-5" />
                         <span>{t('advanced_settings')}</span>

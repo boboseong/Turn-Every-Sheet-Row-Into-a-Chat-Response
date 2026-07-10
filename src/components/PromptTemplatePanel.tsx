@@ -9,9 +9,10 @@ import { applyPromptTemplate } from '@/utils/promptTemplate';
 const PromptTemplatePanel: React.FC = () => {
   const { t } = useTranslation();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { csvData, promptTemplate, setPromptTemplate, selectedRowIndex } = useStore();
+  const { csvData, promptTemplate, setPromptTemplate, selectedRowIndex, activeBatchMode } = useStore();
   const headers = csvData.headers;
-  const disabled = headers.length === 0;
+  const hasNoHeaders = headers.length === 0;
+  const disabled = hasNoHeaders || activeBatchMode !== null;
 
   const generatedPrompt = useMemo(() => {
     if (selectedRowIndex === null || !csvData.rows[selectedRowIndex]) {
@@ -46,15 +47,16 @@ const PromptTemplatePanel: React.FC = () => {
     <Panel title={t('prompt_template')}>
       <div className="p-4 flex flex-col flex-grow overflow-hidden">
         <div className="mb-3">
-          <p className={`text-sm ${disabled ? 'text-gray-500' : 'text-gray-400'}`}>
-            {disabled ? t('no_file_uploaded') : t('insert_header')}
+          <p className={`text-sm ${hasNoHeaders ? 'text-gray-500' : 'text-gray-400'}`}>
+            {hasNoHeaders ? t('no_file_uploaded') : t('insert_header')}
           </p>
           <div className="flex flex-wrap gap-2 mt-2">
             {headers.map(header => (
               <button
                 key={header}
                 onClick={() => handleTagClick(header)}
-                className="bg-gray-600 hover:bg-teal-600 text-gray-200 font-mono text-sm py-1 px-3 rounded-full transition-colors"
+                disabled={disabled}
+                className="bg-gray-600 hover:bg-teal-600 text-gray-200 font-mono text-sm py-1 px-3 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {`{{${header}}}`}
               </button>

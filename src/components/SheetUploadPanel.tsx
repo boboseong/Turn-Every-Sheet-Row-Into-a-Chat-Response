@@ -26,7 +26,8 @@ const SheetUploadPanel: React.FC = () => {
   const [pendingSheets, setPendingSheets] = useState<WorkbookSheetOption[] | null>(null);
   const [selectedSheetName, setSelectedSheetName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { csvData, selectedRowIndex, setSelectedRowIndex, setCsvData, clearSheetData } = useStore();
+  const { csvData, selectedRowIndex, setSelectedRowIndex, setCsvData, clearSheetData, activeBatchMode } = useStore();
+  const isBatchLocked = activeBatchMode !== null;
 
   const handleFileLoaded = useCallback(async (data: CsvData) => {
     await setCsvData(data);
@@ -36,6 +37,7 @@ const SheetUploadPanel: React.FC = () => {
   }, [setCsvData]);
 
   const handleParse = useCallback((file: File) => {
+    if (isBatchLocked) return;
     setUploadError(null);
     setPendingSheets(null);
     setSelectedSheetName('');
@@ -100,7 +102,7 @@ const SheetUploadPanel: React.FC = () => {
     } else {
       setUploadError('invalid_file_type');
     }
-  }, [handleFileLoaded]);
+  }, [handleFileLoaded, isBatchLocked]);
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -123,12 +125,14 @@ const SheetUploadPanel: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
+    if (isBatchLocked) return;
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleParse(e.dataTransfer.files[0]);
     }
   };
   
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isBatchLocked) return;
     if (e.target.files && e.target.files[0]) {
       handleParse(e.target.files[0]);
     }
@@ -136,10 +140,11 @@ const SheetUploadPanel: React.FC = () => {
   };
 
   const triggerFileSelect = () => {
-    fileInputRef.current?.click();
+    if (!isBatchLocked) fileInputRef.current?.click();
   };
 
   const handleClearUploadedCsv = async () => {
+    if (isBatchLocked) return;
     if (window.confirm(t('confirm_delete_sheet'))) {
       await clearSheetData();
       setPendingSheets(null);
@@ -149,6 +154,7 @@ const SheetUploadPanel: React.FC = () => {
   };
 
   const handleLoadSelectedSheet = async () => {
+    if (isBatchLocked) return;
     const selectedSheet = pendingSheets?.find(
       (sheet) => sheet.name === selectedSheetName && sheet.status === 'valid',
     );
@@ -169,7 +175,8 @@ const SheetUploadPanel: React.FC = () => {
       headerContent={
         <button
           onClick={handleClearUploadedCsv}
-          className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2 rounded transition-colors text-xs"
+          disabled={isBatchLocked}
+          className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2 rounded transition-colors text-xs disabled:cursor-not-allowed disabled:opacity-50"
         >
           {t('delete_sheet')}
         </button>
@@ -188,6 +195,7 @@ const SheetUploadPanel: React.FC = () => {
                   id="workbook-sheet"
                   value={selectedSheetName}
                   onChange={(event) => setSelectedSheetName(event.target.value)}
+                  disabled={isBatchLocked}
                   className="mt-4 rounded-md border border-gray-600 bg-gray-950 p-2 text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   {pendingSheets.map((sheet) => (
@@ -202,6 +210,7 @@ const SheetUploadPanel: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleCancelSheetSelection}
+                    disabled={isBatchLocked}
                     className="rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-500"
                   >
                     {t('cancel')}
@@ -209,6 +218,7 @@ const SheetUploadPanel: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => void handleLoadSelectedSheet()}
+                    disabled={isBatchLocked}
                     className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500"
                   >
                     {t('load_sheet')}
@@ -222,13 +232,14 @@ const SheetUploadPanel: React.FC = () => {
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 onClick={triggerFileSelect}
-                className={`flex-grow flex flex-col items-center justify-center border-2 border-dashed rounded-md cursor-pointer transition-colors ${isDragging ? 'border-teal-400 bg-gray-700' : 'border-gray-600 hover:border-teal-500'}`}
+                className={`flex-grow flex flex-col items-center justify-center border-2 border-dashed rounded-md transition-colors ${isBatchLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${isDragging ? 'border-teal-400 bg-gray-700' : 'border-gray-600 hover:border-teal-500'}`}
               >
                 <input
                     type="file"
                     ref={fileInputRef}
                     onChange={handleFileSelect}
                     accept=".csv, .xlsx, .xls, .tsv"
+                    disabled={isBatchLocked}
                     className="hidden"
                 />
                 <UploadIcon className="w-12 h-12 text-gray-500 mb-2"/>

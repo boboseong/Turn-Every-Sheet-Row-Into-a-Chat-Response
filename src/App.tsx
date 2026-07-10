@@ -14,7 +14,8 @@ import { useStore } from '@/state/store';
 
 const App: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const { loadInitialData, clearAllData, workMode, setWorkMode } = useStore();
+  const { loadInitialData, clearAllData, workMode, setWorkMode, activeBatchMode } = useStore();
+  const isBatchLocked = activeBatchMode !== null;
 
   useEffect(() => {
     loadInitialData();
@@ -38,7 +39,8 @@ const App: React.FC = () => {
           <h1 className="text-3xl font-bold text-center text-teal-400">{t('title')}</h1>
           <button
             onClick={handleClearAndRefresh}
-            className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2 rounded transition-colors text-xs"
+            disabled={isBatchLocked}
+            className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2 rounded transition-colors text-xs disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t('clear_all_data')}
           </button>
@@ -47,13 +49,15 @@ const App: React.FC = () => {
         <div className="mt-3 flex justify-center gap-2" role="group" aria-label={t('work_mode')}>
           <button
             onClick={() => setWorkMode('sheet')}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${workMode === 'sheet' ? 'bg-teal-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+            disabled={isBatchLocked}
+            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${workMode === 'sheet' ? 'bg-teal-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
           >
             {t('sheet_mode')}
           </button>
           <button
             onClick={() => setWorkMode('image')}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${workMode === 'image' ? 'bg-teal-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+            disabled={isBatchLocked}
+            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${workMode === 'image' ? 'bg-teal-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
           >
             {t('image_mode')}
           </button>

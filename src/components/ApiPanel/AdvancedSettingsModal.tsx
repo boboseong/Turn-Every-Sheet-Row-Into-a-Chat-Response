@@ -35,6 +35,9 @@ const AdvancedSettingsModal: React.FC = () => {
         setReasoningState,
         isAdvancedSettingsOpen,
         setIsAdvancedSettingsOpen,
+        concurrencyLimit,
+        setConcurrencyLimit,
+        activeBatchMode,
     } = useStore();
     const inputStyles = "w-full p-2 bg-gray-900 border border-gray-600 rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-none text-gray-200 placeholder-gray-500";
 
@@ -42,8 +45,8 @@ const AdvancedSettingsModal: React.FC = () => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-md">
-                <div className="flex justify-between items-center p-4 border-b border-gray-700">
+            <div className="flex max-h-[90vh] w-full max-w-md flex-col rounded-lg bg-gray-800 shadow-2xl">
+                <div className="flex shrink-0 justify-between items-center p-4 border-b border-gray-700">
                     <h3 className="text-lg font-bold text-teal-400">{t('advanced_settings')}</h3>
                     <button onClick={() => setIsAdvancedSettingsOpen(false)} className="text-gray-400 hover:text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,7 +54,23 @@ const AdvancedSettingsModal: React.FC = () => {
                         </svg>
                     </button>
                 </div>
-                <div className="p-4 space-y-4">
+                <fieldset disabled={activeBatchMode !== null} className="min-h-0 flex-1 overflow-y-auto p-4 space-y-4 disabled:opacity-60">
+                    <div>
+                        <label htmlFor="concurrencyLimit" className="block text-sm font-medium text-gray-300">
+                            {t('concurrency_limit')} (1-20)
+                        </label>
+                        <input
+                            type="number"
+                            id="concurrencyLimit"
+                            value={concurrencyLimit}
+                            onChange={(event) => setConcurrencyLimit(Number(event.target.value))}
+                            className={`${inputStyles} mt-2`}
+                            min="1"
+                            max="20"
+                            step="1"
+                        />
+                        <p className="mt-1 text-xs text-gray-400">{t('concurrency_help')}</p>
+                    </div>
                     <div className="flex items-center justify-between">
                         <label htmlFor="temperature" className="block text-sm font-medium text-gray-300">
                             {t('temperature')} (0-2)
@@ -156,8 +175,8 @@ const AdvancedSettingsModal: React.FC = () => {
                             <span>{t('on')}</span>
                         </div>
                     </div>
-                </div>
-                <div className="flex justify-end p-4 border-t border-gray-700">
+                </fieldset>
+                <div className="flex shrink-0 justify-end p-4 border-t border-gray-700">
                     <button onClick={() => setIsAdvancedSettingsOpen(false)} className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700">
                         {t('close')}
                     </button>

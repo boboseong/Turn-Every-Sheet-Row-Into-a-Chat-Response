@@ -8,8 +8,8 @@ const ImageUploadPanel: React.FC = () => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const { imageTasks, addImageTasks, removeImageTask } = useStore();
-  const hasRunningTask = imageTasks.some((task) => task.loading);
+  const { imageTasks, addImageTasks, removeImageTask, activeBatchMode } = useStore();
+  const isBatchLocked = activeBatchMode !== null;
 
   const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -21,6 +21,7 @@ const ImageUploadPanel: React.FC = () => {
   });
 
   const handleFiles = async (files: FileList | File[]) => {
+    if (isBatchLocked) return;
     const imageFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
     if (imageFiles.length === 0) {
       alert(t('image_only_alert'));
@@ -47,17 +48,17 @@ const ImageUploadPanel: React.FC = () => {
           onDrop={(event) => {
             event.preventDefault();
             setIsDragging(false);
-            void handleFiles(event.dataTransfer.files);
+            if (!isBatchLocked) void handleFiles(event.dataTransfer.files);
           }}
-          onClick={() => !hasRunningTask && fileInputRef.current?.click()}
-          className={`flex min-h-40 flex-col items-center justify-center rounded-md border-2 border-dashed transition-colors ${hasRunningTask ? 'cursor-not-allowed border-gray-700 opacity-60' : 'cursor-pointer'} ${isDragging ? 'border-teal-400 bg-gray-700' : 'border-gray-600 hover:border-teal-500'}`}
+          onClick={() => !isBatchLocked && fileInputRef.current?.click()}
+          className={`flex min-h-40 flex-col items-center justify-center rounded-md border-2 border-dashed transition-colors ${isBatchLocked ? 'cursor-not-allowed border-gray-700 opacity-60' : 'cursor-pointer'} ${isDragging ? 'border-teal-400 bg-gray-700' : 'border-gray-600 hover:border-teal-500'}`}
         >
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
             multiple
-            disabled={hasRunningTask}
+            disabled={isBatchLocked}
             className="hidden"
             onChange={(event) => {
               if (event.target.files) void handleFiles(event.target.files);
@@ -81,7 +82,7 @@ const ImageUploadPanel: React.FC = () => {
                 </p>
                 <button
                   onClick={() => removeImageTask(task.id)}
-                  disabled={hasRunningTask}
+                  disabled={isBatchLocked}
                   className="mt-2 text-xs text-red-300 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t('remove_image')}
