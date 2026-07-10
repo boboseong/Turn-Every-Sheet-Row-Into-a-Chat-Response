@@ -1,4 +1,4 @@
-import { CsvData, ImageTask, ReasoningState } from '@/types';
+import { CostEstimateStatus, CsvData, ImageTask, ReasoningState } from '@/types';
 import { idbSet } from '@/utils/indexedDB';
 import { applyPromptTemplate } from '@/utils/promptTemplate';
 import React from 'react';
@@ -38,6 +38,7 @@ export const handleTestApi = async (
     setApiResponse: (response: string) => void,
     setLastApiCost: (cost: number | null) => void,
     setEstimatedTotalCost: (cost: { min: number; max: number } | null) => void,
+    setCostEstimateStatus: (status: CostEstimateStatus) => void,
     imageDataUrl?: string,
     totalItemCount?: number,
 ) => {
@@ -58,6 +59,7 @@ export const handleTestApi = async (
     setApiResponse('');
     setLastApiCost(null);
     setEstimatedTotalCost(null);
+    setCostEstimateStatus('loading');
 
     try {
         const messageContent = imageDataUrl
@@ -88,19 +90,6 @@ export const handleTestApi = async (
             })
         });
 
-        const costHeader = response.headers.get('x-openrouter-cost');
-        if (costHeader) {
-            const cost = parseFloat(costHeader);
-            setLastApiCost(cost);
-            const itemCount = totalItemCount ?? csvData.rows.length;
-            if (itemCount > 0) {
-                setEstimatedTotalCost({
-                    min: cost * 0.8 * itemCount,
-                    max: cost * 2 * itemCount,
-                });
-            }
-        }
-
         const data = await response.json();
         await idbSet('lastApiResponse', data);
 
@@ -108,10 +97,26 @@ export const handleTestApi = async (
             throw new Error(data.error?.message || `API request failed with status ${response.status}`);
         }
 
+        const cost = data.usage?.cost;
+        if (typeof cost === 'number' && Number.isFinite(cost) && cost >= 0) {
+            setLastApiCost(cost);
+            const itemCount = totalItemCount ?? csvData.rows.length;
+            setEstimatedTotalCost(itemCount > 0 ? {
+                min: cost * 0.8 * itemCount,
+                max: cost * 3 * itemCount,
+            } : null);
+            setCostEstimateStatus('ready');
+        } else {
+            setCostEstimateStatus('unavailable');
+        }
+
         const content = data.choices[0]?.message?.content || "No content returned from API.";
         setApiResponse(content);
 
     } catch (error) {
+        setLastApiCost(null);
+        setEstimatedTotalCost(null);
+        setCostEstimateStatus('unavailable');
         if (error instanceof Error) {
             setApiResponse(`Error: ${error.message}`);
         } else {

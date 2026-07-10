@@ -34,8 +34,10 @@ test.describe('Image mode shared prompt', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        headers: { 'x-openrouter-cost': '0.001' },
-        body: JSON.stringify({ choices: [{ message: { content: 'First image test response' } }] }),
+        body: JSON.stringify({
+          choices: [{ message: { content: 'First image test response' } }],
+          usage: { cost: 0.001 },
+        }),
       });
     });
 
@@ -51,6 +53,8 @@ test.describe('Image mode shared prompt', () => {
     await testButton.click();
 
     await expect(page.getByText('First image test response')).toBeVisible();
+    await expect(page.getByTestId('test-api-cost')).toHaveText('$0.001000');
+    await expect(page.getByTestId('estimated-total-cost')).toHaveText('$0.001600 - $0.006000');
     expect(requests).toEqual([{ prompt: 'Test the first image.', imageUrl: redImageDataUrl }]);
   });
 

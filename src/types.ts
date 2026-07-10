@@ -5,6 +5,7 @@ export interface CsvData {
 
 export type ReasoningState = 'off' | 'default' | 'on';
 
+export type CostEstimateStatus = 'idle' | 'loading' | 'ready' | 'unavailable';
 
 export interface ImageTask {
   id: string;

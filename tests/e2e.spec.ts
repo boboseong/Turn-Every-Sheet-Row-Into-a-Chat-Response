@@ -6,9 +6,9 @@ test.describe('CSV-based Dynamic Prompt Generator E2E Test', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        headers: { 'x-openrouter-cost': '0.001' },
         body: JSON.stringify({
           choices: [{ message: { content: 'Mocked response' } }],
+          usage: { cost: 0.001 },
         }),
       });
     });
@@ -45,6 +45,9 @@ test.describe('CSV-based Dynamic Prompt Generator E2E Test', () => {
     await page.getByPlaceholder('Enter the model name').fill('google/gemini-2.5-flash-lite');
 
     await page.getByRole('button', { name: 'Test Prompt' }).click();
+
+    await expect(page.getByTestId('test-api-cost')).toHaveText('$0.001000');
+    await expect(page.getByTestId('estimated-total-cost')).toHaveText('$0.001600 - $0.006000');
 
     // 7. Click "Start Processing"
     await page.getByRole('button', { name: 'start processing' }).click();

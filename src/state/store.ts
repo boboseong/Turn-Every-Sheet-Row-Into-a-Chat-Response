@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { CsvData, ImageTask, ReasoningState, WorkMode } from '@/types';
+import { CostEstimateStatus, CsvData, ImageTask, ReasoningState, WorkMode } from '@/types';
 import { idbGet, idbSet, idbClear } from '@/utils/indexedDB';
 
 interface AppState {
@@ -12,6 +12,7 @@ interface AppState {
   apiLoading: boolean;
   lastApiCost: number | null;
   estimatedTotalCost: { min: number; max: number } | null;
+  costEstimateStatus: CostEstimateStatus;
   isProcessingAllRows: boolean;
   processedResults: Record<string, string>[];
   processedRowCount: number;
@@ -42,6 +43,7 @@ interface AppState {
   setApiLoading: (loading: boolean) => void;
   setLastApiCost: (cost: number | null) => void;
   setEstimatedTotalCost: (cost: { min: number; max: number } | null) => void;
+  setCostEstimateStatus: (status: CostEstimateStatus) => void;
   setIsProcessingAllRows: (processing: boolean) => void;
   setProcessedResults: (results: Record<string, string>[]) => void;
   setProcessedRowCount: (count: number | ((prev: number) => number)) => void;
@@ -80,6 +82,7 @@ export const useStore = create<AppState>((set) => ({
   apiLoading: false,
   lastApiCost: null,
   estimatedTotalCost: null,
+  costEstimateStatus: 'idle',
   isProcessingAllRows: false,
   processedResults: [],
   processedRowCount: 0,
@@ -122,6 +125,7 @@ export const useStore = create<AppState>((set) => ({
   setApiLoading: (loading) => set({ apiLoading: loading }),
   setLastApiCost: (cost) => set({ lastApiCost: cost }),
   setEstimatedTotalCost: (cost) => set({ estimatedTotalCost: cost }),
+  setCostEstimateStatus: (status) => set({ costEstimateStatus: status }),
   setIsProcessingAllRows: (processing) => set({ isProcessingAllRows: processing }),
   setProcessedResults: (results) => {
     const newIndividualResponses: Record<number, string> = {};
@@ -339,6 +343,7 @@ export const useStore = create<AppState>((set) => ({
       apiLoading: false,
       lastApiCost: null,
       estimatedTotalCost: null,
+      costEstimateStatus: 'idle',
       isProcessingAllRows: false,
       processedResults: [],
       processedRowCount: 0,

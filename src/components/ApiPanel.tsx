@@ -40,6 +40,7 @@ const ApiPanel: React.FC = () => {
         setApiResponse,
         setLastApiCost,
         setEstimatedTotalCost,
+        setCostEstimateStatus,
         isAdvancedSettingsOpen,
         setIsAdvancedSettingsOpen,
     } = useStore();
@@ -88,6 +89,7 @@ const ApiPanel: React.FC = () => {
             setApiResponse,
             setLastApiCost,
             setEstimatedTotalCost,
+            setCostEstimateStatus,
             workMode === 'image' ? imageTasks[0]?.dataUrl : undefined,
             workMode === 'image' ? imageTasks.length : csvData.rows.length,
         );
@@ -171,7 +173,7 @@ const ApiPanel: React.FC = () => {
                     </div>
                 </div>
 
-                <EstimateCostPanel csvRowCount={workMode === 'image' ? imageTasks.length : csvData.rows.length} />
+                <EstimateCostPanel itemCount={workMode === 'image' ? imageTasks.length : csvData.rows.length} />
             </div>
             <AdvancedSettingsModal />
         </div>
