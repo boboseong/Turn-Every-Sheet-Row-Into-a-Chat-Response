@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { CostEstimateStatus, CsvData, ImageTask, ReasoningState, WorkMode } from '@/types';
-import { idbGet, idbSet, idbClear } from '@/utils/indexedDB';
+import { idbGet, idbSet, idbClear, idbRemove } from '@/utils/indexedDB';
 
 interface AppState {
   csvData: CsvData;
@@ -34,7 +34,7 @@ interface AppState {
   workMode: WorkMode;
   imageTasks: ImageTask[];
   imagePrompt: string;
-  setCsvData: (data: CsvData) => void;
+  setCsvData: (data: CsvData) => Promise<void>;
   setSelectedRowIndex: (index: number | null) => void;
   setPromptTemplate: (template: string) => void;
   setApiKey: (key: string) => void;
@@ -69,6 +69,7 @@ interface AppState {
   setImageTaskLoading: (id: string, loading: boolean) => void;
   setImageTaskResponse: (id: string, response: string) => void;
   loadInitialData: () => void;
+  clearSheetData: () => Promise<void>;
   clearAllData: () => void;
 }
 
@@ -104,9 +105,26 @@ export const useStore = create<AppState>((set) => ({
   workMode: 'sheet',
   imageTasks: [],
   imagePrompt: '',
-  setCsvData: (data) => {
-    set({ csvData: data });
-    idbSet('uploadedCsv', data);
+  setCsvData: async (data) => {
+    set({
+      csvData: data,
+      selectedRowIndex: data.rows.length > 0 ? 0 : null,
+      apiResponse: '',
+      apiLoading: false,
+      lastApiCost: null,
+      estimatedTotalCost: null,
+      costEstimateStatus: 'idle',
+      isProcessingAllRows: false,
+      processedResults: [],
+      processedRowCount: 0,
+      individualResponses: {},
+    });
+    await Promise.all([
+      idbSet('uploadedCsv', data),
+      idbSet('processedResults', []),
+      idbRemove('lastApiResponse'),
+      idbRemove('lastGenerationData'),
+    ]);
   },
   setSelectedRowIndex: (index) => set({ selectedRowIndex: index }),
   setPromptTemplate: (template) => {
@@ -330,6 +348,27 @@ export const useStore = create<AppState>((set) => ({
         await idbSet('imagePrompt', legacyPrompt);
       }
     }
+  },
+  clearSheetData: async () => {
+    set({
+      csvData: { headers: [], rows: [] },
+      selectedRowIndex: null,
+      apiResponse: '',
+      apiLoading: false,
+      lastApiCost: null,
+      estimatedTotalCost: null,
+      costEstimateStatus: 'idle',
+      isProcessingAllRows: false,
+      processedResults: [],
+      processedRowCount: 0,
+      individualResponses: {},
+    });
+    await Promise.all([
+      idbRemove('uploadedCsv'),
+      idbSet('processedResults', []),
+      idbRemove('lastApiResponse'),
+      idbRemove('lastGenerationData'),
+    ]);
   },
   clearAllData: async () => {
     await idbClear();
