@@ -10,7 +10,6 @@ export interface ImageTask {
   id: string;
   name: string;
   dataUrl: string;
-  prompt: string;
   response: string;
   loading: boolean;
 }

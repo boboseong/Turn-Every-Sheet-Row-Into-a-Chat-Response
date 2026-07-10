@@ -2,6 +2,17 @@ import { test, expect } from '@playwright/test';
 
 test.describe('CSV-based Dynamic Prompt Generator E2E Test', () => {
   test('should allow a user to upload a CSV, generate prompts, and download the results', async ({ page }) => {
+    await page.route('**/openrouter.ai/api/v1/chat/completions', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: { 'x-openrouter-cost': '0.001' },
+        body: JSON.stringify({
+          choices: [{ message: { content: 'Mocked response' } }],
+        }),
+      });
+    });
+
     // 1. Navigate to the app
     await page.goto('/');
 
@@ -30,7 +41,7 @@ test.describe('CSV-based Dynamic Prompt Generator E2E Test', () => {
 
 
     // 6. Enter API Key and Model
-    await page.getByPlaceholder('Enter your OpenRouter API key').fill(process.env.VITE_OPENROUTER_API_KEY!);
+    await page.getByPlaceholder('Enter your OpenRouter API key').fill('test-api-key');
     await page.getByPlaceholder('Enter the model name').fill('google/gemini-2.5-flash-lite');
 
     await page.getByRole('button', { name: 'Test Prompt' }).click();

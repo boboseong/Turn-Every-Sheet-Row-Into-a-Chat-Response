@@ -18,6 +18,9 @@ const ApiPanel: React.FC = () => {
         apiResponse,
         apiLoading,
         csvData,
+        workMode,
+        imageTasks,
+        imagePrompt,
         selectedRowIndex,
         promptTemplate,
         temperature,
@@ -43,6 +46,9 @@ const ApiPanel: React.FC = () => {
     const inputStyles = "w-full p-2 bg-gray-900 border border-gray-600 rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-none text-gray-200 placeholder-gray-500";
 
     const generatedPrompt = useMemo(() => {
+        if (workMode === 'image') {
+            return imagePrompt;
+        }
         if (selectedRowIndex === null || !csvData.rows[selectedRowIndex]) {
             return 'To get started, please select a data row from the Sheet Upload Panel.';
         }
@@ -51,7 +57,12 @@ const ApiPanel: React.FC = () => {
         }
 
         return applyPromptTemplate(promptTemplate, csvData.rows[selectedRowIndex], csvData.headers);
-    }, [selectedRowIndex, promptTemplate, csvData]);
+    }, [workMode, imagePrompt, selectedRowIndex, promptTemplate, csvData]);
+
+    const isTestDisabled = apiLoading
+        || !apiKey
+        || !model
+        || (workMode === 'image' && (!imagePrompt.trim() || imageTasks.length === 0));
 
     const onTestApiClick = () => {
         handleTestApi(
@@ -76,7 +87,9 @@ const ApiPanel: React.FC = () => {
             setApiLoading,
             setApiResponse,
             setLastApiCost,
-            setEstimatedTotalCost
+            setEstimatedTotalCost,
+            workMode === 'image' ? imageTasks[0]?.dataUrl : undefined,
+            workMode === 'image' ? imageTasks.length : csvData.rows.length,
         );
     };
 
@@ -125,7 +138,7 @@ const ApiPanel: React.FC = () => {
                     </button>
                     <button
                         onClick={onTestApiClick}
-                        disabled={apiLoading || !apiKey || !model}
+                        disabled={isTestDisabled}
                         className="inline-flex items-center gap-2 justify-center px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 disabled:bg-gray-600 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-teal-500 transition-colors"
                     >
                         {apiLoading ? (
@@ -158,7 +171,7 @@ const ApiPanel: React.FC = () => {
                     </div>
                 </div>
 
-                <EstimateCostPanel csvRowCount={csvData.rows.length} />
+                <EstimateCostPanel csvRowCount={workMode === 'image' ? imageTasks.length : csvData.rows.length} />
             </div>
             <AdvancedSettingsModal />
         </div>

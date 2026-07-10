@@ -1,4 +1,4 @@
-import { CsvData, ReasoningState } from '@/types';
+import { CsvData, ImageTask, ReasoningState } from '@/types';
 import { idbSet } from '@/utils/indexedDB';
 import { applyPromptTemplate } from '@/utils/promptTemplate';
 import React from 'react';
@@ -37,7 +37,9 @@ export const handleTestApi = async (
     setApiLoading: (loading: boolean) => void,
     setApiResponse: (response: string) => void,
     setLastApiCost: (cost: number | null) => void,
-    setEstimatedTotalCost: (cost: { min: number; max: number } | null) => void
+    setEstimatedTotalCost: (cost: { min: number; max: number } | null) => void,
+    imageDataUrl?: string,
+    totalItemCount?: number,
 ) => {
     const isInstructional = generatedPrompt.startsWith('To get started') || generatedPrompt.startsWith('Now, please enter');
     if (!apiKey || !model || !generatedPrompt || isInstructional) {
@@ -47,7 +49,9 @@ export const handleTestApi = async (
 
     await idbSet('apiKey', apiKey);
     await idbSet('model', model);
-    await idbSet('promptTemplate', promptTemplate);
+    if (!imageDataUrl) {
+        await idbSet('promptTemplate', promptTemplate);
+    }
     await idbSet('lastApiRequest', generatedPrompt);
 
     setApiLoading(true);
@@ -56,6 +60,13 @@ export const handleTestApi = async (
     setEstimatedTotalCost(null);
 
     try {
+        const messageContent = imageDataUrl
+            ? [
+                { type: 'text', text: generatedPrompt },
+                { type: 'image_url', image_url: { url: imageDataUrl } },
+            ]
+            : generatedPrompt;
+
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -66,7 +77,7 @@ export const handleTestApi = async (
             },
             body: JSON.stringify({
                 model: model,
-                messages: [{ role: "user", content: generatedPrompt }],
+                messages: [{ role: "user", content: messageContent }],
                 ...(isTemperatureEnabled && { temperature: temperature }),
                 ...(isMaxTokensEnabled && { max_tokens: maxTokens }),
                 ...(isTopPEnabled && { top_p: topP }),
@@ -81,10 +92,11 @@ export const handleTestApi = async (
         if (costHeader) {
             const cost = parseFloat(costHeader);
             setLastApiCost(cost);
-            if (csvData.rows.length > 0) {
+            const itemCount = totalItemCount ?? csvData.rows.length;
+            if (itemCount > 0) {
                 setEstimatedTotalCost({
-                    min: cost * 0.8 * csvData.rows.length,
-                    max: cost * 2 * csvData.rows.length,
+                    min: cost * 0.8 * itemCount,
+                    max: cost * 2 * itemCount,
                 });
             }
         }
@@ -269,7 +281,8 @@ export const callApi = async ({
 };
 
 interface ProcessImagePromptParams {
-  task: import('@/types').ImageTask;
+  task: ImageTask;
+  prompt: string;
   apiKey: string;
   model: string;
   temperature: number;
@@ -291,6 +304,7 @@ interface ProcessImagePromptParams {
 
 export const processImagePrompt = async ({
   task,
+  prompt,
   apiKey,
   model,
   temperature,
@@ -309,7 +323,7 @@ export const processImagePrompt = async ({
   setImageTaskLoading,
   setImageTaskResponse,
 }: ProcessImagePromptParams): Promise<void> => {
-  if (!apiKey || !model || !task.prompt.trim()) {
+  if (!apiKey || !model || !prompt.trim()) {
     alert('Please provide an API Key, model, and image prompt first.');
     return;
   }
@@ -332,7 +346,7 @@ export const processImagePrompt = async ({
           {
             role: 'user',
             content: [
-              { type: 'text', text: task.prompt },
+              { type: 'text', text: prompt },
               { type: 'image_url', image_url: { url: task.dataUrl } },
             ],
           },

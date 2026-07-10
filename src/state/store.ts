@@ -32,6 +32,7 @@ interface AppState {
   isAdvancedSettingsOpen: boolean;
   workMode: WorkMode;
   imageTasks: ImageTask[];
+  imagePrompt: string;
   setCsvData: (data: CsvData) => void;
   setSelectedRowIndex: (index: number | null) => void;
   setPromptTemplate: (template: string) => void;
@@ -62,7 +63,7 @@ interface AppState {
   setWorkMode: (mode: WorkMode) => void;
   addImageTasks: (tasks: ImageTask[]) => void;
   removeImageTask: (id: string) => void;
-  updateImageTaskPrompt: (id: string, prompt: string) => void;
+  setImagePrompt: (prompt: string) => void;
   setImageTaskLoading: (id: string, loading: boolean) => void;
   setImageTaskResponse: (id: string, response: string) => void;
   loadInitialData: () => void;
@@ -99,6 +100,7 @@ export const useStore = create<AppState>((set) => ({
   isAdvancedSettingsOpen: false,
   workMode: 'sheet',
   imageTasks: [],
+  imagePrompt: '',
   setCsvData: (data) => {
     set({ csvData: data });
     idbSet('uploadedCsv', data);
@@ -137,7 +139,7 @@ export const useStore = create<AppState>((set) => ({
     idbSet('processedResults', results).then(() => {
       idbGet('uploadedCsv').then(csvData => {
         if (csvData) {
-          const updatedRows = csvData.rows.map((row, index) => {
+          const updatedRows = csvData.rows.map((row: Record<string, string>, index: number) => {
             const result = results.find((r, i) => i === index);
             if (result && result.api_response) {
               return { ...row, Result: result.api_response };
@@ -221,11 +223,10 @@ export const useStore = create<AppState>((set) => ({
     idbSet('imageTasks', imageTasks);
     return { imageTasks };
   }),
-  updateImageTaskPrompt: (id, prompt) => set((state) => {
-    const imageTasks = state.imageTasks.map((task) => task.id === id ? { ...task, prompt } : task);
-    idbSet('imageTasks', imageTasks);
-    return { imageTasks };
-  }),
+  setImagePrompt: (prompt) => {
+    set({ imagePrompt: prompt });
+    idbSet('imagePrompt', prompt);
+  },
   setImageTaskLoading: (id, loading) => set((state) => {
     const imageTasks = state.imageTasks.map((task) => task.id === id ? { ...task, loading } : task);
     idbSet('imageTasks', imageTasks);
@@ -305,9 +306,25 @@ export const useStore = create<AppState>((set) => ({
     if (storedWorkMode) {
       set({ workMode: storedWorkMode });
     }
+    const storedImagePrompt = await idbGet('imagePrompt');
+    if (typeof storedImagePrompt === 'string') {
+      set({ imagePrompt: storedImagePrompt });
+    }
     const storedImageTasks = await idbGet('imageTasks');
-    if (storedImageTasks) {
-      set({ imageTasks: storedImageTasks.map((task: ImageTask) => ({ ...task, loading: false })) });
+    if (Array.isArray(storedImageTasks)) {
+      type StoredImageTask = ImageTask & { prompt?: string };
+      const imageTasks = storedImageTasks.map(({ prompt: _prompt, ...task }: StoredImageTask) => ({
+        ...task,
+        loading: false,
+      }));
+      set({ imageTasks });
+      await idbSet('imageTasks', imageTasks);
+
+      const legacyPrompt = storedImageTasks.find((task: StoredImageTask) => task.prompt?.trim())?.prompt;
+      if (!(typeof storedImagePrompt === 'string' && storedImagePrompt.trim()) && legacyPrompt) {
+        set({ imagePrompt: legacyPrompt });
+        await idbSet('imagePrompt', legacyPrompt);
+      }
     }
   },
   clearAllData: async () => {
@@ -342,6 +359,7 @@ export const useStore = create<AppState>((set) => ({
       isAdvancedSettingsOpen: false,
       workMode: 'sheet',
       imageTasks: [],
+      imagePrompt: '',
     });
   },
 }));

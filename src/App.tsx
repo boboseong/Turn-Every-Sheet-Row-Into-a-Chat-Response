@@ -6,7 +6,10 @@ import PromptTemplatePanel from '@/components/PromptTemplatePanel';
 import ApiPanel from '@/components/ApiPanel';
 import ActionPanel from '@/components/ActionPanel';
 import IndividualResultsPanel from '@/components/IndividualResultsPanel';
+import ImageUploadPanel from '@/components/ImageUploadPanel';
 import ImagePromptPanel from '@/components/ImagePromptPanel';
+import ImageActionPanel from '@/components/ImageActionPanel';
+import ImageIndividualResultsPanel from '@/components/ImageIndividualResultsPanel';
 import { useStore } from '@/state/store';
 
 const App: React.FC = () => {
@@ -64,11 +67,14 @@ const App: React.FC = () => {
               <PromptTemplatePanel />
             </>
           ) : (
-            <ImagePromptPanel />
+            <>
+              <ImageUploadPanel />
+              <ImagePromptPanel />
+            </>
           )}
           <ApiPanel />
-          {workMode === 'sheet' && <ActionPanel />}
-          {workMode === 'sheet' && <IndividualResultsPanel />}
+          {workMode === 'sheet' ? <ActionPanel /> : <ImageActionPanel />}
+          {workMode === 'sheet' ? <IndividualResultsPanel /> : <ImageIndividualResultsPanel />}
         </main>
       </div>
     </div>
